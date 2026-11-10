@@ -1,0 +1,20 @@
+{
+  "name": "ondemand-for-x",
+  "version": "0.9.1",
+  "description": "OnDemand for X (Twitter): your timeline one batch at a time, only when you press the button.",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build.js",
+    "check:locales": "node tools/check-locales.js",
+    "check:store": "node tools/check-store.js",
+    "test": "node test/run-tests.cjs",
+    "check": "node tools/check-locales.js && node tools/check-store.js && node tools/build.js && node test/run-tests.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.0"
+  },
+  "xod": {
+    "geckoId": "{24f7be2c-b1c0-431e-8156-8e07caa9203c}"
+  }
+}

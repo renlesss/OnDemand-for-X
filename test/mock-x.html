@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home / X (mock for tests)</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font: 15px/1.35 system-ui, sans-serif; }
+  body.dark  { background: rgb(0, 0, 0);       color: #e7e9ea; }
+  body.dim   { background: rgb(21, 32, 43);    color: #f7f9f9; }
+  body.light { background: rgb(255, 255, 255); color: #0f1419; }
+
+  #app { display: flex; justify-content: center; }
+  .rail { width: 275px; flex: none; position: sticky; top: 0; height: 100vh; }
+  .rail .account { position: absolute; left: 8px; bottom: 12px; width: 250px; height: 60px; border: 1px solid #555; border-radius: 30px; }
+  .side { width: 350px; flex: none; }
+  main { width: 600px; flex: none; border-inline: 1px solid #333; }
+  @media (max-width: 1000px) { .rail, .side { display: none; } main { width: 100%; border-inline: 0; } }
+
+  .tabs { position: sticky; top: 0; z-index: 5; height: 53px; display: flex; align-items: stretch; justify-content: space-around;
+          background: inherit; border-bottom: 1px solid #333; }
+  .tabs a { flex: 1; display: flex; align-items: center; justify-content: center; color: inherit; text-decoration: none; }
+  .tabs a[aria-selected="true"] { font-weight: 800; }
+  [aria-label="Home timeline"] { position: relative; }
+  #list { position: relative; }
+  .cell { position: absolute; left: 0; right: 0; }
+  .flow .cell { position: static; }
+  article[data-testid="tweet"] { box-sizing: border-box; padding: 12px 16px; border-bottom: 1px solid #333; overflow: hidden; }
+  article .meta { opacity: .7; }
+  #footer { height: 70px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  [role="progressbar"] { height: 70px; display: flex; align-items: center; }
+  [data-testid="retry"] { padding: 6px 14px; border: 1px solid #888; border-radius: 999px; cursor: pointer; }
+  .bottom-nav { display: none; }
+  @media (max-width: 500px) {
+    .bottom-nav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; height: 53px; z-index: 10;
+                  background: inherit; border-top: 1px solid #333; align-items: center; justify-content: space-around; }
+  }
+  /* variant: an inner element scrolls instead of the window */
+  .inner-scroll, .inner-scroll body { overflow: hidden; }
+  .inner-scroll #scroll { height: 100vh; overflow-y: auto; }
+  #layers { position: relative; }
+  /* variant: like X's markup, the app root has the height of the window and the posts overflow it */
+  .rootfixed, .rootfixed body { height: 100%; }
+  .rootfixed #react-root { height: 100%; display: flex; }
+  .rootfixed #scroll { flex: 1; min-width: 0; }
+
+  /* ?demo=1 — a presentable made-up feed for screenshots (generic posts, invented people, no logos) */
+  body.demo { font-family: system-ui, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+  body.demo.light { --d-line: #eff3f4; --d-muted: #536471; --d-card: #f7f9f9; }
+  body.demo.dark  { --d-line: #2f3336; --d-muted: #71767b; --d-card: #16181c; }
+  body.demo.dim   { --d-line: #38444d; --d-muted: #8b98a5; --d-card: #1e2732; }
+  body.demo main, body.demo .tabs, body.demo article[data-testid="tweet"] { border-color: var(--d-line); }
+  body.demo.light .tabs { background: #fff; }
+  body.demo.dark .tabs { background: #000; }
+  body.demo.dim .tabs { background: rgb(21, 32, 43); }
+  body.demo.light .bottom-nav { background: #fff; }
+  body.demo.dark .bottom-nav { background: #000; }
+  body.demo.dim .bottom-nav { background: rgb(21, 32, 43); }
+  body.demo .bottom-nav { border-top-color: var(--d-line); color: var(--d-muted); font-size: 14px; font-weight: 600; }
+  body.demo main { padding-bottom: 260px; box-sizing: border-box; }   /* the layout is taller than the posts, as on the real site */
+  body.demo .tabs a { font-size: 15px; color: var(--d-muted); font-weight: 600; }
+  body.demo .tabs a[aria-selected="true"] { color: inherit; font-weight: 800; box-shadow: inset 0 -4px 0 #3558e6; }
+  body.demo article[data-testid="tweet"] { display: flex; gap: 12px; padding: 12px 16px; }
+  body.demo .d-av { flex: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700;
+                    display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  body.demo .d-body { flex: 1; min-width: 0; }
+  body.demo .d-name { font-weight: 700; }
+  body.demo .meta { color: var(--d-muted); opacity: 1; }
+  body.demo [data-testid="tweetText"] { margin-top: 2px; font-size: 15px; line-height: 1.4; }
+  body.demo .d-actions { display: flex; gap: 36px; margin-top: 12px; color: var(--d-muted); font-size: 13px; }
+  body.demo .d-actions span { display: inline-flex; align-items: center; gap: 6px; }
+  body.demo .d-actions svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  body.demo .rail { padding: 12px 8px; box-sizing: border-box; }
+  body.demo .rail .d-logo { width: 44px; height: 44px; border-radius: 12px; background: #3558e6; margin: 4px 0 14px 8px; }
+  body.demo .rail .d-nav { padding: 12px 16px; font-size: 20px; border-radius: 999px; color: inherit; }
+  body.demo .rail .d-nav.on { font-weight: 800; }
+  body.demo .rail .account { display: flex; align-items: center; gap: 10px; padding: 0 12px; border-color: var(--d-line); }
+  body.demo .rail .account .d-av { width: 40px; height: 40px; background: #7a5af8; }
+  body.demo .rail .account .d-who { line-height: 1.2; font-size: 14px; }
+  body.demo .side { padding: 12px 24px; box-sizing: border-box; }
+  body.demo .side .d-search { height: 44px; border-radius: 999px; background: var(--d-card); color: var(--d-muted); display: flex; align-items: center; padding: 0 18px; }
+  body.demo .side .d-card { margin-top: 16px; border-radius: 16px; background: var(--d-card); padding: 12px 16px; }
+  body.demo .side .d-card h3 { margin: 0 0 8px; font-size: 20px; }
+  body.demo .side .d-card div { padding: 8px 0; color: var(--d-muted); }
+  body.demo #footer { color: var(--d-muted); }
+</style>
+</head>
+<body>
+<div id="react-root">
+  <div id="scroll">
+    <div id="app">
+      <header role="banner" class="rail"><div class="account" data-testid="SideNav_AccountSwitcher_Button"></div></header>
+      <main role="main">
+        <div data-testid="primaryColumn">
+          <div class="tabs" role="tablist">
+            <a role="tab" aria-selected="true" href="/home" data-op="HomeTimeline">For you</a>
+            <a role="tab" aria-selected="false" href="/home" data-op="HomeLatestTimeline">Following</a>
+          </div>
+          <div aria-label="Home timeline"><div id="list"></div><div id="footer"></div></div>
+          <div id="detail" style="display:none">
+            <article data-testid="tweet" role="article" data-pid="detail1" style="height:240px">
+              <div data-testid="User-Name">Detail user</div>
+              <a href="/someone/status/777"><time datetime="2026-10-15T10:00:00Z">1h</time></a>
+              <div data-testid="tweetText">A single post page, must be ignored by the extension.</div>
+            </article>
+          </div>
+        </div>
+      </main>
+      <div class="side" data-testid="sidebarColumn"></div>
+    </div>
+  </div>
+  <nav class="bottom-nav"><span>Home</span><span>Search</span><span>Alerts</span><span>Mail</span></nav>
+</div>
+<div id="layers"></div>
+
+<script nonce="xodTest">
+/*FEEDGEN*/
+</script>
+<script nonce="xodTest">
+(function () {
+  const q = new URLSearchParams(location.search);
+  const theme = q.get('theme') || 'dark';
+  const BUF = Number(q.get('buf') || 1);          // viewport heights kept mounted above and below
+  const PAGE = Number(q.get('page') || 20);       // posts per page that is asked from the "server"
+  const JITTER = q.get('jitter') === '1';         // posts grow after mount (images loading)
+  const FLOW = q.get('mode') === 'flow';          // no virtualisation, normal document flow
+  const INNER = q.get('scroller') === 'inner';    // an inner element scrolls, not the window
+  const NOCELL = q.get('nocell') === '1';         // markup without data-testid="cellInnerDiv"
+  const RTL = q.get('rtl') === '1';               // Arabic interface: columns flipped
+  const NET = q.get('net') === 'fetch' ? 'fetch' : 'xhr';   // how the app talks to the server
+  const GET_FOLLOWING = q.get('get') === '1';     // the Following timeline sends GET with ?variables=
+  const AUTOLOAD = q.get('autoload') !== '0';     // the app asks for the next page by itself near the end
+  const MANUAL_START = q.get('start') === '0';    // do not load the first page until __mock.start()
+  const KEEPOLD = q.get('keepold') === '1';       // a refresh does not cancel the old request (it only ignores its answer later)
+  const QID = 'mockQ1';
+  const MAXITEMS = 500;
+
+  const DEMO = q.get('demo') === '1';             // a presentable made-up feed (screenshots)
+  document.body.className = theme + (DEMO ? ' demo' : '');
+  const XLANG = q.get('xlang');                   // the language X itself is shown in ("none" = no lang attribute)
+  if (XLANG === 'none') document.documentElement.removeAttribute('lang');
+  else if (XLANG) document.documentElement.lang = XLANG;
+  if (RTL) {
+    document.documentElement.dir = 'rtl';
+    document.documentElement.lang = 'ar';
+    document.getElementById('app').style.flexDirection = 'row-reverse';
+  }
+  if (INNER) document.documentElement.classList.add('inner-scroll');
+  if (q.get('rootfixed') === '1') document.documentElement.classList.add('rootfixed');
+  if (FLOW) document.getElementById('list').classList.add('flow');
+
+  const SCR = INNER ? document.getElementById('scroll') : null;
+  const pos = () => (SCR ? SCR.scrollTop : scrollY);
+  const vpH = () => (SCR ? SCR.clientHeight : innerHeight);
+  const scrollToPos = (y) => { if (SCR) SCR.scrollTop = y; else scrollTo(0, y); };
+
+  // variants of the tab strip: the extension has to find the timeline on screen even in markup it does not know
+  if (q.get('tabs') === '3') {                    // a pinned list as a third tab
+    const a = document.createElement('a');
+    a.setAttribute('role', 'tab');
+    a.setAttribute('aria-selected', 'false');
+    a.href = '/home';
+    a.dataset.op = 'List';
+    a.textContent = 'My list';
+    document.querySelector('.tabs').appendChild(a);
+  }
+  if (q.get('tabswap') === '1') {                 // the two timelines in the opposite order: the strip must not be trusted blindly
+    const strip = document.querySelector('.tabs');
+    strip.insertBefore(strip.lastElementChild, strip.firstElementChild);
+  }
+  if (q.get('tabloc') === 'none') document.querySelector('.tabs').removeAttribute('role');   // no tab strip to read (as seen on a phone)
+  if (q.get('tabloc') === 'body') {               // the tab strip sits outside <main> and outside the primary column
+    document.getElementById('react-root').insertBefore(document.querySelector('.tabs'), document.getElementById('scroll'));
+  }
+
+  if (DEMO) {
+    const rail = document.querySelector('.rail');
+    rail.insertBefore(Object.assign(el('div', { class: 'd-logo' }), {}), rail.firstChild);
+    ['Home', 'Explore', 'Notifications', 'Messages', 'Bookmarks', 'Profile'].forEach((t, k) => {
+      const n = el('div', { class: 'd-nav' + (k === 0 ? ' on' : '') }, t);
+      rail.insertBefore(n, rail.querySelector('.account'));
+    });
+    const acc = rail.querySelector('.account');
+    const av = el('div', { class: 'd-av' }, 'D');
+    const who = el('div', { class: 'd-who' });
+    who.appendChild(el('div', { style: 'font-weight:700' }, 'Demo user'));
+    who.appendChild(el('div', { class: 'meta' }, '@demo'));
+    acc.append(av, who);
+    const side = document.querySelector('.side');
+    side.appendChild(el('div', { class: 'd-search' }, 'Search'));
+    const card = el('div', { class: 'd-card' });
+    card.appendChild(el('h3', null, 'What’s happening'));
+    ['A quiet morning', 'Bread, baking and patience', 'Books on the shelf'].forEach((t) => card.appendChild(el('div', null, t)));
+    side.appendChild(card);
+  }
+
+  const list = document.getElementById('list');
+  const footer = document.getElementById('footer');
+  const detail = document.getElementById('detail');
+  const tabs = [...document.querySelectorAll('.tabs [role="tab"]')];
+
+  const OPS = ['HomeTimeline', 'HomeLatestTimeline'];
+  const tabState = {};
+  for (const op of OPS) {
+    tabState[op] = { op, epoch: 0, items: [], tops: [], total: 0, bottom: null, top: null, loading: false, failed: false, started: false, scroll: 0, req: null, sent: 0, gen: 0 };
+  }
+  let S = tabState.HomeTimeline;
+  let route = location.pathname;
+  let savedScroll = 0;
+  const mounted = new Map();                      // item index -> cell element
+
+  function recompute(s) {
+    s.tops = [];
+    s.total = 0;
+    for (const it of s.items) { s.tops.push(s.total); s.total += it.h; }
+  }
+
+  /* ───────────────────────────── the "network" ───────────────────────────── */
+
+  // One call to X's GraphQL timeline endpoint. Resolves with the parsed JSON.
+  function callTimeline(op, cursor, ctx, s) {
+    const variables = { count: PAGE, includePromotedContent: true, latestControlAvailable: true, requestContext: ctx || 'launch', withCommunity: true };
+    if (cursor) variables.cursor = cursor; else variables.seenTweetIds = [];
+    const url = `https://x.com/i/api/graphql/${QID}/${op}`;
+    const useGet = op === 'HomeLatestTimeline' && GET_FOLLOWING;
+    const body = JSON.stringify({ variables, features: {}, queryId: QID });
+    const full = useGet ? `${url}?variables=${encodeURIComponent(JSON.stringify(variables))}&features=%7B%7D` : url;
+    return new Promise((resolve, reject) => {
+      if (NET === 'fetch') {
+        const ctl = new AbortController();
+        if (s) s.req = { abort: () => ctl.abort() };
+        fetch(full, {
+          method: useGet ? 'GET' : 'POST',
+          headers: { 'content-type': 'application/json', 'x-client-transaction-id': String(Date.now()) },
+          body: useGet ? undefined : body,
+          signal: ctl.signal,
+          credentials: 'include',
+        }).then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))).then(resolve, reject);
+      } else {
+        const xhr = new XMLHttpRequest();
+        if (s) s.req = xhr;
+        xhr.open(useGet ? 'GET' : 'POST', full, true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        xhr.setRequestHeader('x-client-transaction-id', String(Date.now()));
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(e); }
+          } else reject(new Error('HTTP ' + xhr.status));
+        };
+        xhr.onerror = () => reject(new Error('network'));
+        xhr.onabort = () => reject(new Error('aborted'));
+        xhr.send(useGet ? null : body);
+      }
+    });
+  }
+
+  function entriesOf(json) {
+    const out = [];
+    const ins = json && json.data && json.data.home && json.data.home.home_timeline_urt && json.data.home.home_timeline_urt.instructions;
+    for (const i of ins || []) for (const e of i.entries || []) out.push(e);
+    return out;
+  }
+  function itemOf(en) {
+    const c = en.content || {};
+    if (c.mock) return c.mock;
+    const r = c.itemContent && c.itemContent.tweet_results && c.itemContent.tweet_results.result;
+    return r && r.mock;
+  }
+
+  const DEMO_POSTS = [
+    ['Layla Haddad', 'layla', 'Sunrise from the balcony this morning. The city is so quiet before six.'],
+    ['Sam Okafor', 'samok', 'Finished the first draft! Three months of evenings. Now it rests for a week before I touch it again.'],
+    ['Mia Chen', 'miachen', 'Tiny tip: if your sourdough is dense, check how warm the kitchen is before blaming the starter.'],
+    ['Yusuf Demir', 'yusufd', 'Long walk by the water, no phone for an hour. Highly recommended.'],
+    ['Clara Dubois', 'clara_d', 'Rereading my favourite novel for the fifth time. Still finding sentences I somehow missed.'],
+    ['Diego Alvarez', 'diegoal', 'Coffee, a rainy window, and a to-do list that finally fits on one page.'],
+    ['Noor Saleh', 'noors', 'Small win: fixed a bug that had annoyed me for two weeks. It was one missing comma.'],
+    ['Tomás Ribeiro', 'tribeiro', 'The best part of a trip is the unplanned hour between two planned things.'],
+    ['Ines Moreau', 'ines_m', 'Planted tomatoes on the windowsill. Ask me again in August how that went.'],
+    ['Kemal Arslan', 'kemala', 'Learning to cook one new dish a week. This week: a very humble omelette.'],
+  ];
+  const DEMO_POSTS_AR = [
+    ['ليلى حداد', 'layla', 'شروق الشمس من الشرفة هالصباح. المدينة هادية قبل السادسة.'],
+    ['سامي العلي', 'samiali', 'خلصت المسودة الأولى! ثلاثة شهور من السهر. الحين تستريح أسبوع قبل ما ألمسها.'],
+    ['نورة السالم', 'noura_s', 'نصيحة صغيرة: إذا طلع العجين ثقيل، شوف حرارة المطبخ قبل لا تلوم الخميرة.'],
+    ['يوسف دمير', 'yusufd', 'مشي طويل جنب البحر بدون جوال لمدة ساعة. أنصح فيه.'],
+    ['مريم الخطيب', 'maryam_k', 'أعيد قراءة روايتي المفضلة للمرة الخامسة وما زلت ألقى جملاً فاتتني.'],
+    ['عمر الراشد', 'omar_r', 'قهوة ونافذة ماطرة وقائمة مهام أخيراً تكفيها صفحة وحدة.'],
+  ];
+  function demoize(it) {
+    const k = Math.abs(it.i) + (it.i < 0 ? 3 : 0);
+    const pool = RTL ? DEMO_POSTS_AR : DEMO_POSTS;
+    const d = pool[k % pool.length];
+    it.type = 'post';
+    it.h = 112 + ((k * 7) % 4) * 14;
+    it.demo = { name: d[0], handle: d[1], text: d[2], hue: (k * 47) % 360, likes: 12 + ((k * 31) % 480), replies: 1 + ((k * 7) % 40), reposts: (k * 5) % 60 };
+    it.pid = it.pid || `demo${k}`;
+    it.href = `/${d[1]}/status/${1000 + k}`;
+  }
+
+  // mode: 'first' replaces the feed, 'more' appends (older posts), 'top' prepends (newer posts)
+  function applyResponse(s, json, mode) {
+    const its = [];
+    let bot = null;
+    let topc = null;
+    for (const en of entriesOf(json)) {
+      const c = en.content || {};
+      if (c.cursorType === 'Bottom') bot = c.value;
+      else if (c.cursorType === 'Top') topc = c.value;
+      else { const it = itemOf(en); if (it) its.push(it); }
+    }
+    if (DEMO) for (const it of its) demoize(it);
+    if (mode === 'first') {
+      s.items = its;
+      s.bottom = bot;
+      s.top = topc;
+      s.epoch = (json.mock && json.mock.epoch) || s.epoch;
+    } else if (mode === 'more') {
+      s.items = s.items.concat(its);
+      s.bottom = bot;
+    } else {
+      s.items = its.concat(s.items);
+      s.top = topc || s.top;
+    }
+    recompute(s);
+  }
+
+  function renderFooter() {
+    footer.textContent = '';
+    if (S.loading) {
+      footer.appendChild(el('div', { role: 'progressbar', 'aria-label': 'Loading timeline' }, '…'));
+    } else if (S.failed) {
+      footer.appendChild(el('div', null, 'Something went wrong.'));
+      const b = el('div', { role: 'button', 'data-testid': 'retry' }, 'Retry');
+      b.addEventListener('click', () => { S.failed = false; requestMore(S); });
+      footer.appendChild(b);
+    }
+  }
+
+  function finish(s, json, mode) {
+    s.loading = false;
+    s.failed = false;
+    s.req = null;
+    applyResponse(s, json, mode);
+    if (s === S) {
+      if (mode === 'first') scrollToPos(0);
+      if (mode === 'top') { clearMounted(); scrollToPos(0); }
+      renderFooter();
+      render();
+    }
+  }
+  function fail(s, err) {
+    s.loading = false;
+    s.req = null;
+    s.failed = !(err && err.message === 'aborted');
+    if (s === S) renderFooter();
+  }
+
+  function loadFirst(s, ctx) {
+    s.started = true;
+    s.loading = true;
+    s.failed = false;
+    s.sent++;
+    if (s === S) renderFooter();
+    return callTimeline(s.op, null, ctx || 'launch', s).then((j) => finish(s, j, 'first'), (e) => fail(s, e));
+  }
+
+  function requestMore(s) {
+    if (!s.bottom || s.loading) return;
+    s.loading = true;
+    s.failed = false;
+    s.sent++;
+    if (s === S) renderFooter();
+    const gen = s.gen;                                // answers that belong to an older feed are ignored
+    callTimeline(s.op, s.bottom, 'launch', s).then((j) => { if (s.gen === gen) finish(s, j, 'more'); }, (e) => { if (s.gen === gen) fail(s, e); });
+  }
+
+  function pollNew() {
+    if (!S.top) return Promise.resolve();
+    return callTimeline(S.op, S.top, 'launch', null).then((j) => finish(S, j, 'top'), (e) => fail(S, e));
+  }
+
+  function refresh(ctx) {
+    // like X: a refresh cancels whatever request was still in flight for this timeline
+    S.gen++;
+    if (!KEEPOLD && S.req && S.req.abort) { try { S.req.abort(); } catch (e) { /* ignore */ } }
+    S.loading = false;
+    clearMounted();
+    return loadFirst(S, ctx || 'ptr');
+  }
+
+  /* ───────────────────────────── the virtual list ───────────────────────────── */
+
+  function el(tag, attrs, text) {
+    const n = document.createElement(tag);
+    if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  function build(i) {
+    const it = S.items[i];
+    const cell = el('div', { class: 'cell' });
+    if (!NOCELL) cell.setAttribute('data-testid', 'cellInnerDiv');
+    if (!FLOW) cell.style.transform = `translateY(${S.tops[i]}px)`;
+    const wrap = el('div');
+    cell.appendChild(wrap);
+
+    if (it.type === 'module') {
+      const m = el('div', { 'data-testid': 'UserCell' }, 'Who to follow');
+      m.style.height = it.h + 'px';
+      wrap.appendChild(m);
+      return cell;
+    }
+
+    const art = el('article', { 'data-testid': 'tweet', role: 'article', 'data-pid': it.pid });
+    art.style.height = it.h + 'px';
+    if (DEMO && it.demo) {
+      const d = it.demo;
+      const av = el('div', { class: 'd-av', 'aria-hidden': 'true' }, d.name[0]);
+      av.style.background = `hsl(${d.hue} 55% 42%)`;
+      const body = el('div', { class: 'd-body' });
+      const nm = el('div', { 'data-testid': 'User-Name' });
+      nm.appendChild(el('span', { class: 'd-name' }, d.name));
+      nm.appendChild(el('span', { class: 'meta' }, ` @${d.handle} · 2h`));
+      body.appendChild(nm);
+      body.appendChild(el('div', { 'data-testid': 'tweetText' }, d.text));
+      const ico = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+      const acts = el('div', { class: 'd-actions' });
+      acts.innerHTML = [
+        [ico('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>'), d.replies],
+        [ico('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>'), d.reposts],
+        [ico('<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/>'), d.likes],
+        [ico('<path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>'), ''],
+      ].map(([svg, n]) => `<span>${svg}${n}</span>`).join('');
+      body.appendChild(acts);
+      art.append(av, body);
+      wrap.appendChild(art);
+      return cell;
+    }
+    const name = el('div', { 'data-testid': 'User-Name' });
+    name.appendChild(el('span', null, it.type === 'repost' ? `Original ${it.i}` : `User ${it.user}`));
+    name.appendChild(el('span', { class: 'meta' }, ' @' + it.user));
+    art.appendChild(name);
+
+    if (it.type === 'ad') {
+      art.appendChild(el('a', { href: `https://example.com/ad/${it.i}`, target: '_blank' }, 'Promoted'));
+    } else {
+      const a = el('a', { href: it.href });
+      a.appendChild(el('time', { datetime: '2026-10-15T10:00:00Z' }, '2h'));
+      art.appendChild(a);
+      if (it.type === 'repost') art.appendChild(el('div', { 'data-testid': 'socialContext' }, 'Someone reposted'));
+    }
+    art.appendChild(el('div', { 'data-testid': 'tweetText' }, it.text));
+    wrap.appendChild(art);
+    return cell;
+  }
+
+  function render() {
+    if (route !== '/home') return;
+    const vh = vpH();
+    const st = pos();
+    const lo = st - BUF * vh;
+    const hi = st + vh + BUF * vh;
+    const want = new Set();
+    for (let i = 0; i < S.items.length; i++) {
+      if (FLOW || (S.tops[i] + S.items[i].h > lo && S.tops[i] < hi)) want.add(i);
+    }
+    for (const [i, node] of mounted) {
+      if (!want.has(i)) { node.remove(); mounted.delete(i); }
+    }
+    for (const i of [...want].sort((a, b) => a - b)) {
+      if (mounted.has(i)) continue;
+      const node = build(i);
+      list.appendChild(node);
+      mounted.set(i, node);
+      if (JITTER && S.items[i].type === 'post') setTimeout(() => grow(i, 40), 250);
+    }
+    if (!FLOW) list.style.height = S.total + 'px';
+    maybeLoad(st, vh);
+  }
+
+  // a post gets taller after it was mounted: everything below shifts down
+  function grow(i, by) {
+    if (!S.items[i] || S.items[i].grown) return;
+    S.items[i].grown = true;
+    S.items[i].h += by;
+    for (let j = i + 1; j < S.items.length; j++) S.tops[j] += by;
+    S.total += by;
+    for (const [k, node] of mounted) {
+      if (!FLOW) node.style.transform = `translateY(${S.tops[k]}px)`;
+      if (k === i) node.querySelector('article')?.style.setProperty('height', S.items[k].h + 'px');
+    }
+    if (!FLOW) list.style.height = S.total + 'px';
+  }
+
+  // like X: when the end of the loaded posts comes within two screens, ask for the next page
+  function maybeLoad(st, vh) {
+    if (!AUTOLOAD || !S.started || !S.bottom || S.loading || S.failed || S.items.length >= MAXITEMS) return;
+    if (st + vh + 2 * vh < S.total) return;
+    requestMore(S);
+  }
+
+  function clearMounted() {
+    for (const node of mounted.values()) node.remove();
+    mounted.clear();
+  }
+
+  function navigate(path) {
+    if (route === '/home') savedScroll = pos();
+    history.pushState({}, '', path);
+    route = location.pathname;
+    clearMounted();
+    if (route === '/home') {
+      list.style.display = '';
+      footer.style.display = '';
+      detail.style.display = 'none';
+      if (!FLOW) list.style.height = S.total + 'px';
+      scrollToPos(savedScroll);
+      render();
+    } else {
+      list.style.display = 'none';
+      footer.style.display = 'none';
+      detail.style.display = '';
+      scrollToPos(0);
+    }
+  }
+
+  let onList = false;
+  function switchTab(op) {
+    if (op === 'List') {                          // a pinned list: another kind of timeline, nothing is requested or parked for it
+      if (!onList) {
+        S.scroll = pos();
+        onList = true;
+        clearMounted();
+        list.style.display = 'none';
+        footer.style.display = 'none';
+        scrollToPos(0);
+      }
+      for (const t of tabs) t.setAttribute('aria-selected', t.dataset.op === 'List' ? 'true' : 'false');
+      return;
+    }
+    if (onList) {
+      onList = false;
+      list.style.display = '';
+      footer.style.display = '';
+      for (const t of tabs) t.setAttribute('aria-selected', t.dataset.op === op ? 'true' : 'false');
+      if (S.op === op) {
+        if (!FLOW) list.style.height = S.total + 'px';
+        scrollToPos(S.scroll || 0);
+        renderFooter();
+        render();
+        return;
+      }
+    }
+    if (S.op === op) return;
+    S.scroll = pos();
+    S = tabState[op];
+    for (const t of tabs) t.setAttribute('aria-selected', t.dataset.op === op ? 'true' : 'false');
+    clearMounted();
+    if (!S.started) {
+      scrollToPos(0);
+      loadFirst(S);
+    } else {
+      scrollToPos(S.scroll);
+      renderFooter();
+      render();
+    }
+  }
+  for (const t of tabs) t.addEventListener('click', (e) => { e.preventDefault(); switchTab(t.dataset.op); });
+
+  // a modal dialog, like X's compose box or image viewer
+  function openModal() {
+    const layers = document.getElementById('layers');
+    const d = el('div', { 'aria-modal': 'true', role: 'dialog' }, 'dialog');
+    d.style.cssText = 'position:fixed;left:20%;top:20%;width:60%;height:60%;background:#222;color:#fff;z-index:50';
+    layers.appendChild(d);
+    return d;
+  }
+
+  (SCR || window).addEventListener('scroll', render, { passive: true });
+  addEventListener('resize', render);
+  renderFooter();
+  function start() { if (!S.started) loadFirst(S); }
+  if (!MANUAL_START) start();
+
+  window.__pos = pos;
+  window.__mock = {
+    navigate, switchTab, refresh, pollNew, start, openModal,
+    scrollToEnd: () => scrollToPos(1e9),
+    // an arbitrary request, for the "unusual request" tests: resolves with the parsed JSON, or rejects
+    raw: (op, cursor, ctx) => callTimeline(op, cursor, ctx, null),
+    // a post near the end gets taller later (an image finished loading): returns the new height of the list
+    lateGrow: (by) => {
+      for (let i = S.items.length - 1; i >= 0; i--) {
+        if (S.items[i].type === 'post' && !S.items[i].grown) { grow(i, by); break; }
+      }
+      return S.total;
+    },
+    loadMore: () => requestMore(S),                    // ask for the next page now (for ?autoload=0 tests)
+    abortPending: () => { const r = S.req; if (r && r.abort) r.abort(); S.loading = false; renderFooter(); },
+    epoch: () => S.epoch,
+    info: () => ({ op: S.op, epoch: S.epoch, items: S.items.length, mounted: mounted.size, total: S.total, loading: S.loading, failed: S.failed, sent: S.sent, hasBottom: !!S.bottom }),
+    setTheme: (t) => { document.body.className = t + (DEMO ? ' demo' : ''); },
+  };
+})();
+</script>
+</body>
+</html>

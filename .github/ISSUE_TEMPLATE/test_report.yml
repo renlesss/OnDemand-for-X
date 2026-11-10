@@ -1,0 +1,42 @@
+name: Test report
+description: You ran the test from docs/BETA-TESTING.md on a real device
+labels: [test-report]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      placeholder: "0.9.1"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser, its version, and the device / OS
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Which steps passed, which did not?
+      description: Use the numbers of the table in docs/BETA-TESTING.md, and say what you saw where it differed.
+    validations:
+      required: true
+  - type: dropdown
+    id: longwait
+    attributes:
+      label: The long wait (30–60 minutes at the end of a batch)
+      options:
+        - Not tried
+        - The batch arrived when I pressed the button
+        - X showed an error
+        - The page reloaded
+        - Nothing happened
+    validations:
+      required: true
+  - type: textarea
+    id: diag
+    attributes:
+      label: Diagnostics text
+      description: Copy it after the test (and after pressing the button in the long wait).
+      render: text

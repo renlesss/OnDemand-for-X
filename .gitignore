@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.pem
+*.key
+*.crx
+*.log
+.DS_Store
+# local test output
+test/out/

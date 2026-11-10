@@ -1,0 +1,15 @@
+name: Idea
+description: Something you would like it to do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The extension does one thing on purpose: it holds the Home feed's next-page request until you press a button.
+        Ideas that keep that promise (and keep it small, quiet and private) are the most likely to fit.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like, and why?
+    validations:
+      required: true

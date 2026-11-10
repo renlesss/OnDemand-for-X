@@ -1,0 +1,57 @@
+name: Bug report
+description: Something does not work (the panel does not show, a batch does not load, X shows an error, …)
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. The **Diagnostics** text is what lets us see what X did. It contains no posts and no account data.
+        Slider icon → *Diagnostics* → *Copy*.
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      description: Shown on the first line of the Diagnostics text, for example `OnDemand for X 0.9.1`.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser, its version, and the device / OS
+      placeholder: "Lemur 1xx on Android 10, Chrome 14x on Windows 11, Firefox 13x on Android 15, …"
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where in X?
+      options:
+        - For you
+        - Following
+        - Both
+        - Somewhere else (describe below)
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open x.com/home  2. Scroll to the end  3. …"
+  - type: textarea
+    id: diag
+    attributes:
+      label: Diagnostics text
+      description: Paste it here. Please open the settings **after** the problem happened so the log contains it.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else (other extensions, a screenshot, how often it happens)

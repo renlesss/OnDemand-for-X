@@ -1,0 +1,378 @@
+/* OnDemand for X — styles (namespaced with xod-) */
+
+#xod-root {
+  display: contents;
+  --xod-bg: #ffffff;
+  --xod-fg: #0f1419;
+  --xod-muted: #536471;
+  --xod-border: #cfd9de;
+  --xod-soft: #eff3f4;
+  --xod-accent: #1d9bf0;
+  --xod-accent-hover: #1a8cd8;
+  --xod-accent-fg: #ffffff;
+  --xod-shadow: 0 10px 30px rgba(15, 20, 25, 0.22);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", "Noto Naskh Arabic", Tahoma, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--xod-fg);
+}
+
+#xod-root.xod-dark {
+  --xod-bg: #000000;
+  --xod-fg: #e7e9ea;
+  --xod-muted: #71767b;
+  --xod-border: #2f3336;
+  --xod-soft: #16181c;
+  --xod-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+}
+
+#xod-root *,
+#xod-root *::before,
+#xod-root *::after {
+  box-sizing: border-box;
+}
+
+/* Base look of the form controls. :where() keeps the specificity at zero, so the rules of
+   the individual controls below (margin, colour, font size...) are never overridden by this. */
+:where(#xod-root) button,
+:where(#xod-root) input,
+:where(#xod-root) select {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#xod-root button {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ───────── small counter + settings button ───────── */
+
+#xod-chip {
+  position: fixed;
+  z-index: 2147483000;
+  left: calc(var(--xod-left, 0px) + 10px);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  padding-inline-end: 12px;
+  border-radius: 999px;
+  background: var(--xod-bg);
+  color: var(--xod-fg);
+  border: 1px solid var(--xod-border);
+  box-shadow: var(--xod-shadow);
+  font-weight: 700;
+  font-size: 13px;
+  opacity: 0.92;
+  direction: ltr;
+  max-width: calc(100vw - var(--xod-left, 0px) - 20px);    /* a longer translation never leaves the screen */
+}
+
+#xod-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--xod-soft);
+  color: var(--xod-fg);
+}
+
+#xod-gear .xod-knob {
+  fill: var(--xod-soft);
+}
+
+#xod-count {
+  min-width: 0;
+  padding-inline: 2px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#xod-chip.xod-paused #xod-count {
+  color: var(--xod-muted);
+  font-weight: 600;
+}
+
+#xod-chip.xod-warn #xod-count {
+  color: #f4212e;
+}
+
+/* while the "batch finished" panel is up, the chip would only peek out from behind it */
+#xod-root.xod-gating #xod-chip {
+  visibility: hidden;
+}
+
+/* ───────── "batch finished" panel ───────── */
+
+#xod-gate {
+  position: fixed;
+  z-index: 2147483001;
+  left: calc(var(--xod-left, 0px) + var(--xod-width, 100vw) / 2);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(520px, calc(var(--xod-width, 100vw) - 24px));
+  padding: 14px 16px 16px;
+  border-radius: 18px;
+  background: var(--xod-bg);
+  color: var(--xod-fg);
+  border: 1px solid var(--xod-border);
+  box-shadow: var(--xod-shadow);
+  text-align: center;
+  /* always laid out (so the script can measure it), only the visibility toggles */
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#xod-gate.xod-on {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#xod-gate .xod-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+#xod-gate .xod-hint {
+  margin-top: 2px;
+  color: var(--xod-muted);
+  font-size: 13px;
+}
+
+#xod-more {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  margin: 12px auto 0;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--xod-accent);
+  color: var(--xod-accent-fg);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+#xod-more:hover {
+  background: var(--xod-accent-hover);
+}
+
+#xod-more:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+#xod-gate-settings {
+  margin-top: 8px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--xod-muted);
+  font-size: 12.5px;
+  text-decoration: underline;
+}
+
+/* Room below the last post, so it can scroll up above the panel. Absolutely positioned at the end of the
+   posts (the script sets `top`), so it adds scroll room however X's page is built. */
+#xod-spacer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#xod-spacer.xod-on {
+  height: 300px;
+}
+
+/* ───────── settings sheet ───────── */
+
+#xod-backdrop {
+  position: fixed;
+  z-index: 2147483002;
+  inset: 0;
+  display: none;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+#xod-backdrop.xod-open {
+  display: block;
+}
+
+#xod-sheet {
+  position: fixed;
+  z-index: 2147483003;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(400px, calc(100vw - 24px));
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  display: none;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--xod-bg);
+  color: var(--xod-fg);
+  border: 1px solid var(--xod-border);
+  box-shadow: var(--xod-shadow);
+}
+
+#xod-sheet.xod-open {
+  display: block;
+}
+
+#xod-sheet .xod-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#xod-sheet .xod-head {
+  margin-top: 0;
+}
+
+#xod-sheet .xod-h {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+#xod-sheet .xod-label {
+  font-weight: 700;
+}
+
+#xod-sheet .xod-sub {
+  margin-top: 16px;
+}
+
+#xod-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--xod-soft);
+  font-size: 18px;
+  line-height: 32px;
+}
+
+/* on/off switch */
+#xod-switch {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--xod-border);
+  transition: background 0.15s ease;
+}
+
+#xod-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+}
+
+#xod-switch[aria-checked="true"] {
+  background: var(--xod-accent);
+}
+
+#xod-switch[aria-checked="true"]::after {
+  transform: translateX(20px);
+}
+
+#xod-lang {
+  padding: 8px 10px;
+  border: 1px solid var(--xod-border);
+  border-radius: 10px;
+  background: var(--xod-bg);
+}
+
+#xod-sheet .xod-foot {
+  margin-top: 16px;
+  color: var(--xod-muted);
+  font-size: 12px;
+}
+
+/* diagnostics */
+#xod-diag-box {
+  margin-top: 16px;
+}
+
+#xod-diag-box summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#xod-diag {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid var(--xod-border);
+  border-radius: 10px;
+  background: var(--xod-soft);
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  direction: ltr;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#xod-diag-box .xod-diagbtns {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+#xod-diag-box .xod-diagbtns button {
+  padding: 7px 14px;
+  border: 1px solid var(--xod-border);
+  border-radius: 999px;
+  background: var(--xod-soft);
+  font-weight: 700;
+}
+
+#xod-root button:focus-visible,
+#xod-root input:focus-visible,
+#xod-root select:focus-visible {
+  outline: 3px solid rgba(29, 155, 240, 0.4);
+  outline-offset: 2px;
+}
+
+/* ───────── narrow screens: stay above X's bottom navigation bar ───────── */
+
+@media (max-width: 500px) {
+  #xod-chip,
+  #xod-gate {
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+}
