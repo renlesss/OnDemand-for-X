@@ -101,6 +101,10 @@ node tools/build.js
 
 البناء ما يحتاج أي حزم npm، وتعليماته في [BUILD.md](BUILD.md). شوف [CONTRIBUTING.md](CONTRIBUTING.md) و[docs/BETA-TESTING.md](docs/BETA-TESTING.md) (ساعدنا نجرّب على أجهزة حقيقية) و[docs/RELEASING.md](docs/RELEASING.md).
 
+## الدعم
+
+«عند الطلب» مجانية ومفتوحة المصدر. إذا أفادتك وتبي تدعم تطويرها، تقدر تتبرع من Ko-fi: <https://ko-fi.com/renless>. اختياري تماماً، والإضافة نفسها ما فيها أي رابط تبرع.
+
 ## الترخيص
 
 [MIT](LICENSE). *«عند الطلب» مشروع مستقل، وليس تابعاً لشركة X Corp ولا مدعوماً منها. «X» و«Twitter» علامات تجارية لأصحابها وتُستخدم هنا فقط لبيان الموقع الذي تعمل عليه الإضافة.*

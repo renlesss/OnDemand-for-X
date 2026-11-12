@@ -103,6 +103,10 @@ node tools/build.js              # packages in dist/
 
 Node 18+ is enough to build (no npm packages needed; see [BUILD.md](BUILD.md)); the tests need Playwright's Chromium. See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/BETA-TESTING.md](docs/BETA-TESTING.md) (help us test on real devices) and [docs/RELEASING.md](docs/RELEASING.md).
 
+## Support
+
+OnDemand for X is free and open source. If you find it useful and want to support its development, you can do so on Ko-fi: <https://ko-fi.com/renless>. It is entirely optional, and the extension itself contains no donation links or prompts.
+
 ## Licence
 
 [MIT](LICENSE). *OnDemand for X is an independent project. It is not affiliated with, endorsed by or sponsored by X Corp. "X" and "Twitter" are trademarks of their owners and are used only to say which website the extension works with.*
